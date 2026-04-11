@@ -71,7 +71,7 @@ GET/ REDIRECT
 
 ## EXPAND FOR SCALING
                                                                         {REDIRECT TO SERVER (PICK WHICH HAS LESS REQUEST, PICK WHICH                                                                   REPSONDS QUICKLY, PICK WHICH IS GEOGRAPHICALLY NEAR, PICK BASE ON ROUND ROBIN)}
-[USER]    -->        [PROXY SERVER/ API GATEWAY]  -->   [LOAD BALANCER]    ----> [URL SHORTNER SERVER 1]   [URL SHORTNER SERVER 3]           
+[USER]    -->        [PROXY SERVER/ API GATEWAY]  -->   [APPLICATION SERVER]    ----> [URL SHORTNER SERVER 1]   [URL SHORTNER SERVER 3]           
                                                                                  [URL SHORTNER SERVER 2]    [URL SHORTNER SERVER 4]
 
 
@@ -85,16 +85,17 @@ SINCE READ RATIO IS 100:1 WE WANT TO MAINTAIN CACHING TO REDUCE LATENCY
 
         CHOICE: CACHE PER SERVER/ GLOBAL CACHE --- LEAN TOWARDS GLOBAL CACHE TO AVOID SINGLE POINT OF FAILURE.
                                                                         
-                           USER             -----> [CACHE SERVER] -----> [CACHE DB] [CACHE DB] [CACHE DB] (USE CONSISTENT HASHING)
-                                                                {CACHE HIT}    <------
-                                                                {CACHE MISS}
-                                                                    ------> [LOAD BALANCER] ---> [URL SHORTNER SERVERS]  ---> DB ----> LOG                                                                                                                                          INTO                                                                                                                       COMPLETE DB (NO SQL DB) 
-                                             <----- {REGISTER TO CACHE} <------
+                USER ----> [LOAD BALANCER] ---> [APPLICATION SERVER] ----> [CACHE SERVER] -----> [CACHE SERVER] -----> [CACHE DB] [CACHE DB] [CACHE DB] (USE CONSISTENT HASHING)
+                       <---- {CACHE HIT} <------
+                            {CACHE MISS}
+                                                 ---> [URL SHORTNER SERVERS]  ---> DB ----> LOG                                                                                                                                          INTO                                                                                                                       COMPLETE DB (NO SQL DB) 
+                  <----- {REGISTER TO CACHE} <------
                                       
  ADD RATE LIMIT
-                                                                       {ALLOWED}
-                 [API GATEWAY] ---> [RATE LIMITER SERVICE] --> DB/CACHE ------->
+                                            {ALLOWED}
+                 [API GATEWAY] ---> DB/CACHE ------->
                                                          <----- {NOT ALLOWED} 429 HTTP 
+            User → API Gateway with rate limiting → Load Balancer → App Servers → Cache → DB
 
 
                                                          
